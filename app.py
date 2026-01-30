@@ -57,10 +57,14 @@ def extract_files_from_zip(zip_file):
     with zipfile.ZipFile(zip_file, 'r') as zip_ref:
         for file_name in zip_ref.namelist():
             if file_name.lower().endswith('.txt') and not file_name.startswith('__MACOSX'):
-                txt_files.append((file_name, zip_ref.read(file_name)))
+                content = zip_ref.read(file_name)
+                base_name = Path(file_name).name
+                txt_files.append((content, base_name))  # (content, name)
             elif file_name.lower().endswith(('.xlsx', '.xls')) and not file_name.startswith('__MACOSX'):
                 if excel_file is None:
-                    excel_file = (file_name, zip_ref.read(file_name))
+                    content = zip_ref.read(file_name)
+                    base_name = Path(file_name).name
+                    excel_file = (content, base_name)  # (content, name)
     
     return txt_files, excel_file
 
@@ -182,12 +186,12 @@ with tab1:
                     txt_files, excel_file = extract_files_from_zip(train_zip)
                     
                     for content, name in txt_files:
-                        with open(train_dir / Path(name).name, 'wb') as f:
+                        with open(train_dir / name, 'wb') as f:
                             f.write(content)
                     
-                    excel_path = train_dir / Path(excel_file[0]).name
+                    excel_path = train_dir / excel_file[1]
                     with open(excel_path, 'wb') as f:
-                        f.write(excel_file[1])
+                        f.write(excel_file[0])
                     
                     progress_bar.progress(15)
                     
@@ -445,7 +449,7 @@ with tab2:
                     txt_files, _ = extract_files_from_zip(valid_zip)
                     
                     for content, name in txt_files:
-                        with open(valid_dir / Path(name).name, 'wb') as f:
+                        with open(valid_dir / name, 'wb') as f:
                             f.write(content)
                     
                     progress_bar.progress(20)
